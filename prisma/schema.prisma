@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mix {
+  id         String     @id @default(cuid())
+  createdAt  DateTime   @default(now())
+  name       String
+  ingredients Ingredient[]
+}
+
+model Ingredient {
+  id       String   @id @default(cuid())
+  mix      Mix      @relation(fields: [mixId], references: [id])
+  mixId    String
+  name     String
+  quantity String
+}

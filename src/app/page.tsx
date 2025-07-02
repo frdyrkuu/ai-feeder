@@ -1,103 +1,186 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Dialog } from "@headlessui/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+type Ingredient = {
+  name: string;
+  quantity: string;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [name, setName] = useState("");
+  const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: "", quantity: "" }]);
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const addIngredient = () => {
+    setIngredients([...ingredients, { name: "", quantity: "" }]);
+  };
+
+  const removeIngredient = (index: number) => {
+    if (ingredients.length > 1) {
+      setIngredients(ingredients.filter((_, i) => i !== index));
+    }
+  };
+
+  const submitMix = async () => {
+    // Validate inputs
+    if (!name.trim()) {
+      toast.error("Please enter a mix name");
+      return;
+    }
+
+    const validIngredients = ingredients.filter(
+      (ing) => ing.name.trim() && ing.quantity.trim()
+    );
+
+    if (validIngredients.length === 0) {
+      toast.error("Please add at least one ingredient");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/mix', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          name: name.trim(),
+          ingredients: validIngredients 
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error("Failed to submit");
+
+      toast.success("Mix added successfully!", {
+        description: `${validIngredients.length} ingredients added`,
+        action: {
+          label: "Dismiss",
+          onClick: () => toast.dismiss(),
+        },
+      });
+
+      // Reset form
+      setName("");
+      setIngredients([{ name: "", quantity: "" }]);
+      setOpen(false);
+    } catch (error) {
+      toast.error("Failed to add mix", {
+        description: "Please try again later",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto pt-24 px-4">
+      <header className="flex justify-between items-center mb-12">
+        <h1 className="text-3xl font-bold">Feed Nutrient AI Tool</h1>
+        <Button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+          + Add Mix Manually
+        </Button>
+      </header>
+
+      <section className="text-gray-700 max-w-xl">
+        <h2 className="text-2xl font-semibold mb-4">Welcome to the Feed Nutrient AI Reporting Tool</h2>
+        <p>
+          Upload or manually add feed ingredients to generate nutritional reports powered by AI.
+        </p>
+      </section>
+
+      <Dialog open={open} onClose={() => !isSubmitting && setOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full">
+            <Dialog.Title className="text-lg font-bold mb-4">Manual Add Mixing</Dialog.Title>
+            
+            <Input 
+              placeholder="Mix Name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              className="mb-4"
+              disabled={isSubmitting}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+            <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
+              {ingredients.map((ing, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <Input 
+                      placeholder="Ingredient" 
+                      value={ing.name} 
+                      onChange={(e) => {
+                        const newIngs = [...ingredients];
+                        newIngs[idx].name = e.target.value;
+                        setIngredients(newIngs);
+                      }}
+                      disabled={isSubmitting}
+                    />
+                    <Input 
+                      placeholder="Quantity" 
+                      value={ing.quantity} 
+                      onChange={(e) => {
+                        const newIngs = [...ingredients];
+                        newIngs[idx].quantity = e.target.value;
+                        setIngredients(newIngs);
+                      }}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  {ingredients.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removeIngredient(idx)}
+                      disabled={isSubmitting}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <Button 
+              variant="outline" 
+              onClick={addIngredient} 
+              className="mb-4 w-full"
+              disabled={isSubmitting}
+            >
+              + Add Ingredient
+            </Button>
+
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={submitMix} 
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : "Submit"}
+              </Button>
+            </div>
+          </Dialog.Panel>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </Dialog>
     </div>
   );
 }
