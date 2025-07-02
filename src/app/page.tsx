@@ -49,9 +49,9 @@ export default function Home() {
     try {
       const response = await fetch('/api/mix', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           name: name.trim(),
-          ingredients: validIngredients 
+          ingredients: validIngredients
         }),
         headers: { 'Content-Type': 'application/json' }
       });
@@ -80,19 +80,28 @@ export default function Home() {
   };
 
   return (
+
     <div className="max-w-7xl mx-auto pt-24 px-4">
-      <header className="flex justify-between items-center mb-12">
+      {/* <header className="flex justify-between items-center mb-12">
         <h1 className="text-3xl font-bold">Feed Nutrient AI Tool</h1>
         <Button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
           + Add Mix Manually
         </Button>
-      </header>
+      </header> */}
 
       <section className="text-gray-700 max-w-xl">
-        <h2 className="text-2xl font-semibold mb-4">Welcome to the Feed Nutrient AI Reporting Tool</h2>
-        <p>
-          Upload or manually add feed ingredients to generate nutritional reports powered by AI.
-        </p>
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold mb-4">Welcome to the Feed Nutrient AI Reporting Tool</h2>
+          <p>
+            Upload or manually add feed ingredients to generate nutritional reports powered by AI.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 mt-6">
+            <Button><a href="">Read Our Documentation</a></Button>
+            <Button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+              + Add Mix Manually
+            </Button>
+          </div>
+        </div>
       </section>
 
       <Dialog open={open} onClose={() => !isSubmitting && setOpen(false)} className="relative z-50">
@@ -100,11 +109,11 @@ export default function Home() {
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full">
             <Dialog.Title className="text-lg font-bold mb-4">Manual Add Mixing</Dialog.Title>
-            
-            <Input 
-              placeholder="Mix Name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
+
+            <Input
+              placeholder="Mix Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="mb-4"
               disabled={isSubmitting}
             />
@@ -113,9 +122,9 @@ export default function Home() {
               {ingredients.map((ing, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
                   <div className="flex-1 grid grid-cols-2 gap-2">
-                    <Input 
-                      placeholder="Ingredient" 
-                      value={ing.name} 
+                    <Input
+                      placeholder="Ingredient"
+                      value={ing.name}
                       onChange={(e) => {
                         const newIngs = [...ingredients];
                         newIngs[idx].name = e.target.value;
@@ -123,9 +132,9 @@ export default function Home() {
                       }}
                       disabled={isSubmitting}
                     />
-                    <Input 
-                      placeholder="Quantity" 
-                      value={ing.quantity} 
+                    <Input
+                      placeholder="Quantity"
+                      value={ing.quantity}
                       onChange={(e) => {
                         const newIngs = [...ingredients];
                         newIngs[idx].quantity = e.target.value;
@@ -135,9 +144,9 @@ export default function Home() {
                     />
                   </div>
                   {ingredients.length > 1 && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => removeIngredient(idx)}
                       disabled={isSubmitting}
                     >
@@ -148,9 +157,9 @@ export default function Home() {
               ))}
             </div>
 
-            <Button 
-              variant="outline" 
-              onClick={addIngredient} 
+            <Button
+              variant="outline"
+              onClick={addIngredient}
               className="mb-4 w-full"
               disabled={isSubmitting}
             >
@@ -158,15 +167,15 @@ export default function Home() {
             </Button>
 
             <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button 
-                onClick={submitMix} 
+              <Button
+                onClick={submitMix}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isSubmitting}
               >

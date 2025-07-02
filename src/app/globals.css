@@ -237,7 +237,26 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  .ai-report {
+    @apply space-y-4;
+
+    table {
+      @apply border-collapse border border-gray-300 w-full mt-4;
+
+      th,
+      td {
+        @apply border border-gray-300 p-2 text-left;
+      }
+    }
+
+    h2 {
+      @apply text-2xl font-semibold mb-2;
+    }
+
   }
 }

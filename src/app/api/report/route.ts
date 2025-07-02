@@ -31,16 +31,25 @@ export async function POST(req: Request) {
         {
           role: 'system',
           content: `You are a professional animal feed nutritionist and agricultural consultant. Given a list of ingredients and weights, return the following in HTML format:
+1. A section titled: "Mix Ingredients"
+    - Display a table with: Ingredient, Quantity, Unit
+    - Include all ingredients from the provided list.
+    - Ensure the total weight is calculated and displayed at the top of the table.
 
-1. A section titled: "Nutritional Value of [total weight] Mix"
+2. A section titled: "Nutritional Value of [total weight] Mix"
    - Display a table with: Calories, Carbohydrates, Sugars, Fiber, Protein, Fat, Water
 
-2. A section titled: "Vitamins & Minerals"
+3. A section titled: "Vitamins & Minerals"
    - Display a table with: Folate, Vitamin C, Potassium, Manganese, Iron, Magnesium, etc.
 
-3. A section titled: "Farmer's Nutritional Feedback"
+4. A section titled: "Farmer's Nutritional Feedback"
    - Provide a short paragraph (1–3 sentences) evaluating if the mix is nutritionally balanced for general livestock.
    - If nutrients are lacking or excessive, suggest specific improvements (e.g., "Add more protein source", "Too much sugar").
+   - Add a note about the importance of balancing nutrients for animal health.
+   - Use clear, concise language suitable for farmers.
+5. A section titled: "Nutritional Report"
+   - Summarize the nutritional content and feedback in a concise paragraph.
+   - Make a recommendation chart for the list of animals that can benefit from this mix (Prioritize: chicken and pig).
 
 Return only HTML (no Markdown, no extra text). Use <h2> for section titles and semantic <table> for data.`,
         },
