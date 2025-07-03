@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, context: { params: { mixId: string } }) {
-  const { mixId } = context.params;
+export async function GET(
+  req: Request,
+  { params }: { params: { mixId: string } }
+) {
+  const { mixId } = params;
 
   try {
     const report = await prisma.report.findFirst({
