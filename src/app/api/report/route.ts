@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       .join('\n');
 
     const response = await openai.chat.completions.create({
-      model: 'anthropic/claude-3-haiku',
+      model: 'meta-llama/llama-3.3-70b-instruct',
       messages: [
         {
           role: 'system',
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
    - Summarize the nutritional content and feedback in a concise paragraph.
    - Make a recommendation chart for the list of animals that can benefit from this mix (Prioritize: chicken and pig).
 
-Return only HTML (no Markdown, no extra text). Use <h2> for section titles and semantic <table> for data.`,
+Return only HTML (no Markdown, no extra text, IF YOU CANNOT PROVIDE DATA STILL USE THE TABLE AND GIVE THE CONS OF THE INGREDIENTS). Use <h2> for section titles and semantic <table> for data.`,
         },
         {
           role: 'user',

@@ -2,12 +2,16 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
 
 export default function MixesPage() {
   const [mixes, setMixes] = useState<any[]>([]);
   const [report, setReport] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [activeMixId, setActiveMixId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [activeMix, setActiveMix] = useState<any>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [mixesPerPage] = useState(5); // Number of mixes per page
@@ -27,6 +31,9 @@ export default function MixesPage() {
   const generateReport = async (mixId: string) => {
     setLoading(true);
     setReport(null);
+    setActiveMixId(mixId);
+    const mix = mixes.find((m) => m.id === mixId);
+    setActiveMix(mix); // store full mix object
 
     const res = await fetch("/api/report", {
       method: "POST",
@@ -41,6 +48,61 @@ export default function MixesPage() {
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  const saveReport = async () => {
+    if (!reportRef.current) return;
+
+    const content = reportRef.current.innerHTML;
+    if (!activeMixId) {
+      toast.warning("Please generate a report first.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const res = await fetch("/api/report/save", {
+        method: "POST",
+        body: JSON.stringify({ mixId: activeMixId, content }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to save report.");
+
+      toast.success("Report saved successfully!");
+    } catch (err) {
+      console.error("Save error:", err);
+      toast.error("Failed to save report.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const viewSavedReport = async (mixId: string) => {
+    setLoading(true);
+    setReport(null);
+    setActiveMixId(mixId);
+    const mix = mixes.find((m) => m.id === mixId);
+    setActiveMix(mix);
+    try {
+      const res = await fetch(`/api/report/${mixId}`);
+      const data = await res.json();
+
+      if (!res.ok || !data.report) {
+        toast.warning("No saved report found.");
+        return;
+      }
+
+      setReport(data.report.content);
+      toast.success("Loaded saved report.");
+    } catch (err) {
+      toast.error("Failed to load report.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const exportDOCX = async () => {
     if (!reportRef.current) return;
@@ -79,7 +141,7 @@ export default function MixesPage() {
       // Create download link
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'nutrient-report.doc';
+      link.download = `nutrient-report_${activeMix?.name.replace(/\s+/g, "_").toLowerCase()}.doc`;
 
       // Trigger download
       document.body.appendChild(link);
@@ -137,7 +199,9 @@ export default function MixesPage() {
         {currentMixes.map((mix) => (
           <div
             key={mix.id}
-            className="border border-gray-300 p-4 mb-4 rounded-md shadow-sm"
+            className={`p-4 mb-4 rounded-md shadow-sm border transition-all duration-300 ${activeMixId === mix.id ? "border-green-500 ring-2 ring-green-300" : "border-gray-300"
+              }`}
+
           >
             <h2 className="text-lg font-semibold">{mix.name}</h2>
             <ul className="ml-6 mt-2 list-disc text-sm text-gray-700">
@@ -147,12 +211,18 @@ export default function MixesPage() {
                 </li>
               ))}
             </ul>
-            <button
-              onClick={() => generateReport(mix.id)}
-              className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
-            >
-              Generate Nutrient Report
-            </button>
+
+            <div className="flex flex-row gap-2">
+              <Button className="mt-3 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm" onClick={() => viewSavedReport(mix.id)}>
+                View Saved Report
+              </Button>
+              <button
+                onClick={() => generateReport(mix.id)}
+                className="mt-3 text-blue-500 hover:text-blue-600 bg-white shadow-none hover:bg-white px-4 py-2 rounded text-sm hover:underline"
+              >
+                Generate Nutrient Report
+              </button>
+            </div>
           </div>
         ))}
 
@@ -173,8 +243,8 @@ export default function MixesPage() {
                   key={number}
                   onClick={() => paginate(number)}
                   className={`px-3 py-1 border-t border-b border-gray-300 bg-white text-sm font-medium ${currentPage === number
-                      ? 'bg-blue-50 text-blue-600 border-blue-500'
-                      : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-green-50 text-green-600 border-green-500'
+                    : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   {number}
@@ -195,7 +265,19 @@ export default function MixesPage() {
 
       {/* Right side: Editable report */}
       <div className="w-1/2">
-        <h2 className="text-xl font-semibold mb-4">Editable Report</h2>
+        <h2 className="text-xl font-semibold mb-4 flex place-content-between">Generative Nutrient Report <span> <Button
+          onClick={saveReport}
+          disabled={saving}
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+        >
+          {saving && (
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          )}
+          {saving ? "Saving..." : "Save Report"}
+        </Button></span></h2>
 
         {loading && <div className="bg-white p-4 border rounded min-h-[500px] prose max-w-none overflow-auto space-y-4">
           <p className="italic text-sm text-gray-600 animate-pulse">Generating report...</p>

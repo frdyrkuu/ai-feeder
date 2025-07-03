@@ -8,16 +8,25 @@ datasource db {
 }
 
 model Mix {
-  id         String     @id @default(cuid())
-  createdAt  DateTime   @default(now())
-  name       String
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  name        String
   ingredients Ingredient[]
+  reports     Report[]
 }
 
 model Ingredient {
-  id       String   @id @default(cuid())
-  mix      Mix      @relation(fields: [mixId], references: [id])
+  id       String @id @default(cuid())
+  mix      Mix    @relation(fields: [mixId], references: [id])
   mixId    String
   name     String
   quantity String
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  content   String
+  mix       Mix      @relation(fields: [mixId], references: [id])
+  mixId     String
 }
