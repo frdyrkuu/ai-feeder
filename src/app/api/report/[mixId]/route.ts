@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { mixId: string } }
+  _req: NextRequest,
+  { params }: { params: Promise<{ mixId: string }> }
 ) {
-  const { mixId } = params;
+  const { mixId } = await params;
 
   try {
     const report = await prisma.report.findFirst({
