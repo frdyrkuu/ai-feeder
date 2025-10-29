@@ -44,7 +44,7 @@ Make sure you have these installed on your computer:
     This downloads a copy of the project to your computer.
 
     ```bash
-    git clone https://github.com/frdyrkuu/ai-feed-reporter.git
+    git clone https://github.com/frdyrkuu/ai-feeder.git
     cd ai-feed-reporter
     ```
 
